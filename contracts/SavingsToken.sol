@@ -30,8 +30,8 @@ contract SavingsToken is ERC20 {
 	event Withdrawn(address indexed saver, uint256 amountIn, uint256 amountOut, uint256 refRatio);
 
 	// ---------------------------------------------------------------------------------------
-	// name: "Savings Token for Frankencoin ZCHF"
-	// symbol: "stZCHF"
+	// name: "Savings Token for Frankencoin ZCHF", symbol: "stZCHF"
+
 	constructor(IERC20 _zchf, ISavings _savings, string memory name, string memory symbol) ERC20(name, symbol) {
 		zchf = _zchf;
 		savings = _savings;
@@ -79,3 +79,14 @@ contract SavingsToken is ERC20 {
 		emit Withdrawn(msg.sender, amount, amountOut, refRatio);
 	}
 }
+
+// contract stZCHF is SavingsToken {
+// 	constructor()
+// 		SavingsToken(
+// 			IERC20(0x01a3F7FeC57F907cdaFc2be49D844a8259B066c0),
+// 			ISavings(0x3E76D80f3531cfEb7C1b5F9a1A30Be6e9c182565),
+// 			'Savings Token for Frankencoin ZCHF',
+// 			'stZCHF'
+// 		)
+// 	{}
+// }
