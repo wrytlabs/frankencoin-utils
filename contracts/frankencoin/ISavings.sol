@@ -32,4 +32,6 @@ interface ISavings {
 	function adjust(uint192 targetAmount) external;
 
 	function withdraw(address target, uint192 amount) external returns (uint256);
+
+	function currentTicks() external view returns (uint64);
 }

@@ -18,10 +18,7 @@ contract SavingsToken is ERC20 {
 	IERC20 public immutable zchf;
 	ISavings public immutable savings;
 
-	uint256 public totalSaved;
-	uint256 public totalWithdrawn;
 	uint256 public totalRewards;
-
 	uint256 public refRatio = 1 ether;
 
 	// ---------------------------------------------------------------------------------------
@@ -48,11 +45,13 @@ contract SavingsToken is ERC20 {
 
 	function save(uint256 amount) public {
 		zchf.safeTransferFrom(msg.sender, address(this), amount);
-		totalSaved += amount;
 
 		uint256 interest = uint256(savings.accruedInterest(address(this)));
-		totalRewards += interest;
-		refRatio += (interest * 1 ether) / totalSupply();
+
+		if (interest > 0) {
+			totalRewards += interest;
+			refRatio += (interest * 1 ether) / totalSupply();
+		}
 
 		savings.save(uint192(amount));
 
@@ -66,27 +65,28 @@ contract SavingsToken is ERC20 {
 	// input token is stZCHF, output token is ZCHF
 
 	function withdraw(uint256 amount) public {
-		_burn(msg.sender, amount);
-		totalWithdrawn += amount;
-
 		uint256 interest = uint256(savings.accruedInterest(address(this)));
-		totalRewards += interest;
-		refRatio += (interest * 1 ether) / totalSupply();
 
-		uint256 amountOut = amount * refRatio;
+		if (interest > 0) {
+			totalRewards += interest;
+			refRatio += (interest * 1 ether) / totalSupply();
+		}
+
+		_burn(msg.sender, amount);
+
+		uint256 amountOut = (amount * refRatio) / 1 ether;
 		savings.withdraw(msg.sender, uint192(amountOut));
 
 		emit Withdrawn(msg.sender, amount, amountOut, refRatio);
 	}
-}
 
-// contract stZCHF is SavingsToken {
-// 	constructor()
-// 		SavingsToken(
-// 			IERC20(0x01a3F7FeC57F907cdaFc2be49D844a8259B066c0),
-// 			ISavings(0x3E76D80f3531cfEb7C1b5F9a1A30Be6e9c182565),
-// 			'Savings Token for Frankencoin ZCHF',
-// 			'stZCHF'
-// 		)
-// 	{}
-// }
+	// ---------------------------------------------------------------------------------------
+
+	function totalBalance() public view returns (uint256) {
+		return savings.savings(address(this)).saved + savings.accruedInterest(address(this));
+	}
+
+	function isUnlocked() public view returns (bool) {
+		return savings.currentTicks() >= savings.savings(address(this)).ticks;
+	}
+}
