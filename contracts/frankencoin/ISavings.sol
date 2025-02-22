@@ -34,4 +34,6 @@ interface ISavings {
 	function withdraw(address target, uint192 amount) external returns (uint256);
 
 	function currentTicks() external view returns (uint64);
+
+	function currentRatePPM() external view returns (uint24);
 }

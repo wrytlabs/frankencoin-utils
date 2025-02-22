@@ -469,7 +469,7 @@
 			},
 			{
 				"inputs": [],
-				"name": "totalRewards",
+				"name": "totalClaimed",
 				"outputs": [
 					{
 						"internalType": "uint256",
@@ -847,19 +847,19 @@
 			]
 		},
 		"contracts/SavingsToken.sol": {
-			"keccak256": "0xa77e8bf8e8383de5d462608a236f80ba849f353e68a35091cabfb44d50674942",
+			"keccak256": "0x2f9f3155732fc92a558a126e3c942651c9111b3da682a4f53032d1b6ea94630d",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://aa9b0e3c005b9ce493339730c4dc606972f11f3dc4f75da3559cbba6fd32d295",
-				"dweb:/ipfs/Qmd9PCN52tYtyvuZmzaHbk6bB5UTtfuQycsKB5Et61pJAD"
+				"bzz-raw://d3ba10604d40937ff03768daad017d05d3468222290a788eab5d1355a671c469",
+				"dweb:/ipfs/QmXJLu5soyBPL4xHETpwxADPJq8APw5vdxdShFu97XdYa7"
 			]
 		},
 		"contracts/frankencoin/ISavings.sol": {
-			"keccak256": "0xa4a2237ba87055ed0acc3247954f6d722f697ddcbdb8b93294a86bba6bca974f",
+			"keccak256": "0x82ac196b494963043ad9270cf8bd4bd8294b2a58e8cae5cce265b9bae52d14c7",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://485a0073c50cdcaf1b6d99c4de5cc44847b3d4ffe480d6bfada64953cb6e071d",
-				"dweb:/ipfs/QmTn9XJwWsouabzimes1PABsBDFLhgW15auGPbUGx7n9c2"
+				"bzz-raw://d38b41b293cf10b0036aa43a19c17a332924f9281446b75132f89ef70bb57c4a",
+				"dweb:/ipfs/QmbDjKHvZbo27vzEHcTjv5dP6AqwPmptVu28Rm3wsyYryG"
 			]
 		}
 	},

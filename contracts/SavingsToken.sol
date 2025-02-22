@@ -15,7 +15,7 @@ contract SavingsToken is ERC20 {
 	IERC20 public immutable zchf;
 	ISavings public immutable savings;
 
-	uint256 public totalRewards;
+	uint256 public totalClaimed;
 	uint256 public price = 1 ether;
 
 	// ---------------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ contract SavingsToken is ERC20 {
 		uint256 interest = uint256(savings.accruedInterest(address(this)));
 
 		if (interest > 0 && totalSupply() > 0) {
-			totalRewards += interest;
+			totalClaimed += interest;
 			price += (interest * 1 ether) / totalSupply();
 		}
 
@@ -72,7 +72,7 @@ contract SavingsToken is ERC20 {
 		uint256 interest = uint256(savings.accruedInterest(address(this)));
 
 		if (interest > 0 && totalSupply() > 0) {
-			totalRewards += interest;
+			totalClaimed += interest;
 			price += (interest * 1 ether) / totalSupply();
 		}
 
@@ -102,6 +102,7 @@ contract SavingsToken is ERC20 {
 
 	function untilUnlocked() public view returns (uint256) {
 		if (isUnlocked()) return 0;
-		return savings.savings(address(this)).ticks - savings.currentTicks();
+		uint256 diff = savings.savings(address(this)).ticks - savings.currentTicks();
+		return (diff / savings.currentRatePPM());
 	}
 }
