@@ -86,6 +86,13 @@ contract SavingsToken is ERC20 {
 
 	// ---------------------------------------------------------------------------------------
 
+	function priceAdjusted() public view returns (uint256) {
+		uint256 totS = totalSupply();
+		if (totS == 0) return 0;
+		uint256 interest = uint256(savings.accruedInterest(address(this)));
+		return price + (interest * 1 ether) / totalSupply();
+	}
+
 	function totalBalance() public view returns (uint256) {
 		return savings.savings(address(this)).saved + savings.accruedInterest(address(this));
 	}

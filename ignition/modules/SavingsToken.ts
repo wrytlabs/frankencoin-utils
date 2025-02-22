@@ -11,7 +11,7 @@ console.log('Imported Params:');
 console.log(params);
 
 // export args
-storeConstructorArgs(MOD, args);
+storeConstructorArgs(NAME, args);
 console.log('Constructor Args');
 console.log(args);
 

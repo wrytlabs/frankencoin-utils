@@ -8,8 +8,8 @@ export type DeploymentParams = {
 };
 
 export const params: DeploymentParams = {
-	zchf: '0x89C31867c878E4268C65de3CDf8Ea201310c5851',
-	savings: '0xc50bF51ee9AaC98E2886ABD8c18876dA11D38709',
+	zchf: '0xB58E61C3098d85632Df34EecfB899A1Ed80921cB',
+	savings: '0x3BF301B0e2003E75A3e86AB82bD1EFF6A9dFB2aE',
 	name: 'Savings Token for Frankencoin ZCHF',
 	symbol: 'stZCHF',
 };

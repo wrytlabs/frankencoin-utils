@@ -2,7 +2,7 @@ import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
 import { storeConstructorArgs } from '../../helper/store.args';
 import { args, params } from '../params/SavingsTokenMainnet';
 
-export const NAME: string = 'SavingsTokenMainnet';
+export const NAME: string = 'SavingsToken';
 export const MOD: string = NAME + 'Module';
 console.log(NAME);
 
