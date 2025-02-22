@@ -6,9 +6,6 @@ import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 
-import {IFrankencoin} from './frankencoin/IFrankencoin.sol';
-import {IReserve} from './frankencoin/IReserve.sol';
-import {ILeadrate} from './frankencoin/ILeadrate.sol';
 import {ISavings} from './frankencoin/ISavings.sol';
 
 contract SavingsToken is ERC20 {
@@ -19,12 +16,12 @@ contract SavingsToken is ERC20 {
 	ISavings public immutable savings;
 
 	uint256 public totalRewards;
-	uint256 public refRatio = 1 ether;
+	uint256 public price = 1 ether;
 
 	// ---------------------------------------------------------------------------------------
 
-	event Saved(address indexed saver, uint256 amountIn, uint256 amountOut, uint256 refRatio);
-	event Withdrawn(address indexed saver, uint256 amountIn, uint256 amountOut, uint256 refRatio);
+	event Saved(address indexed saver, uint256 amountIn, uint256 amountOut, uint256 price);
+	event Withdrawn(address indexed saver, uint256 amountIn, uint256 amountOut, uint256 price);
 
 	// ---------------------------------------------------------------------------------------
 	// name: "Savings Token for Frankencoin ZCHF", symbol: "stZCHF"
@@ -44,40 +41,47 @@ contract SavingsToken is ERC20 {
 	// input token is ZCHF, output token is stZCHF
 
 	function save(uint256 amount) public {
-		zchf.safeTransferFrom(msg.sender, address(this), amount);
+		saveTo(msg.sender, amount);
+	}
 
+	function saveTo(address account, uint256 amount) public {
 		uint256 interest = uint256(savings.accruedInterest(address(this)));
 
-		if (interest > 0) {
+		if (interest > 0 && totalSupply() > 0) {
 			totalRewards += interest;
-			refRatio += (interest * 1 ether) / totalSupply();
+			price += (interest * 1 ether) / totalSupply();
 		}
 
+		zchf.safeTransferFrom(msg.sender, address(this), amount);
 		savings.save(uint192(amount));
 
-		uint256 amountOut = (amount * 1 ether) / refRatio;
-		_mint(msg.sender, amountOut);
+		uint256 amountOut = (amount * 1 ether) / price;
+		_mint(account, amountOut);
 
-		emit Saved(msg.sender, amount, amountOut, refRatio);
+		emit Saved(account, amount, amountOut, price);
 	}
 
 	// ---------------------------------------------------------------------------------------
 	// input token is stZCHF, output token is ZCHF
 
 	function withdraw(uint256 amount) public {
+		withdrawTo(msg.sender, amount);
+	}
+
+	function withdrawTo(address target, uint256 amount) public {
 		uint256 interest = uint256(savings.accruedInterest(address(this)));
 
-		if (interest > 0) {
+		if (interest > 0 && totalSupply() > 0) {
 			totalRewards += interest;
-			refRatio += (interest * 1 ether) / totalSupply();
+			price += (interest * 1 ether) / totalSupply();
 		}
 
 		_burn(msg.sender, amount);
 
-		uint256 amountOut = (amount * refRatio) / 1 ether;
-		savings.withdraw(msg.sender, uint192(amountOut));
+		uint256 amountOut = (amount * price) / 1 ether;
+		amountOut = savings.withdraw(target, totalSupply() == 0 ? type(uint192).max : uint192(amountOut));
 
-		emit Withdrawn(msg.sender, amount, amountOut, refRatio);
+		emit Withdrawn(target, amount, amountOut, price);
 	}
 
 	// ---------------------------------------------------------------------------------------
@@ -86,7 +90,18 @@ contract SavingsToken is ERC20 {
 		return savings.savings(address(this)).saved + savings.accruedInterest(address(this));
 	}
 
+	function saverBalance(address account) public view returns (uint256) {
+		uint256 totS = totalSupply();
+		if (totS == 0) return 0;
+		return (totalBalance() * balanceOf(account)) / totS;
+	}
+
 	function isUnlocked() public view returns (bool) {
 		return savings.currentTicks() >= savings.savings(address(this)).ticks;
+	}
+
+	function untilUnlocked() public view returns (uint256) {
+		if (isUnlocked()) return 0;
+		return savings.savings(address(this)).ticks - savings.currentTicks();
 	}
 }

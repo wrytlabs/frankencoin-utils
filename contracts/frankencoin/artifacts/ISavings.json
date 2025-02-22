@@ -1,0 +1,338 @@
+{
+	"deploy": {
+		"VM:-": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"main:1": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"ropsten:3": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"rinkeby:4": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"kovan:42": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"goerli:5": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		},
+		"Custom": {
+			"linkReferences": {},
+			"autoDeployLib": true
+		}
+	},
+	"data": {
+		"bytecode": {
+			"functionDebugData": {},
+			"generatedSources": [],
+			"linkReferences": {},
+			"object": "",
+			"opcodes": "",
+			"sourceMap": ""
+		},
+		"deployedBytecode": {
+			"functionDebugData": {},
+			"generatedSources": [],
+			"immutableReferences": {},
+			"linkReferences": {},
+			"object": "",
+			"opcodes": "",
+			"sourceMap": ""
+		},
+		"gasEstimates": null,
+		"methodIdentifiers": {
+			"INTEREST_DELAY()": "4df61d82",
+			"accruedInterest(address)": "77267ec3",
+			"accruedInterest(address,uint256)": "a696399d",
+			"adjust(uint192)": "bdc65152",
+			"currentTicks()": "b079f163",
+			"refreshBalance(address)": "b77cd1c7",
+			"refreshMyBalance()": "85bd12d1",
+			"save(address,uint192)": "c1983610",
+			"save(uint192)": "fd449c14",
+			"savings(address)": "1f7cdd5f",
+			"withdraw(address,uint192)": "1791dc5e",
+			"zchf()": "c4d4803a"
+		}
+	},
+	"abi": [
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "account",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint256",
+					"name": "interest",
+					"type": "uint256"
+				}
+			],
+			"name": "InterestCollected",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "account",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint192",
+					"name": "amount",
+					"type": "uint192"
+				}
+			],
+			"name": "Saved",
+			"type": "event"
+		},
+		{
+			"anonymous": false,
+			"inputs": [
+				{
+					"indexed": true,
+					"internalType": "address",
+					"name": "account",
+					"type": "address"
+				},
+				{
+					"indexed": false,
+					"internalType": "uint192",
+					"name": "amount",
+					"type": "uint192"
+				}
+			],
+			"name": "Withdrawn",
+			"type": "event"
+		},
+		{
+			"inputs": [],
+			"name": "INTEREST_DELAY",
+			"outputs": [
+				{
+					"internalType": "uint64",
+					"name": "",
+					"type": "uint64"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "accountOwner",
+					"type": "address"
+				}
+			],
+			"name": "accruedInterest",
+			"outputs": [
+				{
+					"internalType": "uint192",
+					"name": "",
+					"type": "uint192"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "accountOwner",
+					"type": "address"
+				},
+				{
+					"internalType": "uint256",
+					"name": "timestamp",
+					"type": "uint256"
+				}
+			],
+			"name": "accruedInterest",
+			"outputs": [
+				{
+					"internalType": "uint192",
+					"name": "",
+					"type": "uint192"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint192",
+					"name": "targetAmount",
+					"type": "uint192"
+				}
+			],
+			"name": "adjust",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "currentTicks",
+			"outputs": [
+				{
+					"internalType": "uint64",
+					"name": "",
+					"type": "uint64"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				}
+			],
+			"name": "refreshBalance",
+			"outputs": [
+				{
+					"internalType": "uint192",
+					"name": "",
+					"type": "uint192"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "refreshMyBalance",
+			"outputs": [
+				{
+					"internalType": "uint192",
+					"name": "",
+					"type": "uint192"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "owner",
+					"type": "address"
+				},
+				{
+					"internalType": "uint192",
+					"name": "amount",
+					"type": "uint192"
+				}
+			],
+			"name": "save",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "uint192",
+					"name": "amount",
+					"type": "uint192"
+				}
+			],
+			"name": "save",
+			"outputs": [],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "account",
+					"type": "address"
+				}
+			],
+			"name": "savings",
+			"outputs": [
+				{
+					"components": [
+						{
+							"internalType": "uint192",
+							"name": "saved",
+							"type": "uint192"
+						},
+						{
+							"internalType": "uint64",
+							"name": "ticks",
+							"type": "uint64"
+						}
+					],
+					"internalType": "struct ISavings.Account",
+					"name": "",
+					"type": "tuple"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"inputs": [
+				{
+					"internalType": "address",
+					"name": "target",
+					"type": "address"
+				},
+				{
+					"internalType": "uint192",
+					"name": "amount",
+					"type": "uint192"
+				}
+			],
+			"name": "withdraw",
+			"outputs": [
+				{
+					"internalType": "uint256",
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"name": "zchf",
+			"outputs": [
+				{
+					"internalType": "address",
+					"name": "",
+					"type": "address"
+				}
+			],
+			"stateMutability": "view",
+			"type": "function"
+		}
+	]
+}
