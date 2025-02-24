@@ -1,5 +1,21 @@
 # Core
 
+Research and Development for a Frankencoin Savings Wrapper.
+
+- [x] stZCHF - ERC20 Token which accumulates interests. (Adds token based ownership of the Savings Module)
+- [ ] NFT ZCHF - ERC721 NFT which accumulates interests. (Adds nft token based ownership of Savings Module)
+- [ ] AccessControl / Factory SC - Adds custom logic to an SC with access control. Could be used with Typed Signed Data / Signatures
+
+## 1. stZCHF - Savings Token - Mainnet (beta deployment)
+
+```
+0x182d220f976362E9D9949A2bF9210F36Cb7D860C
+```
+
+```
+https://etherscan.io/address/0x182d220f976362e9d9949a2bf9210f36cb7d860c#code
+```
+
 ### Yarn Package Scripts
 
 ```json
