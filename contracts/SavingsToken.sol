@@ -50,6 +50,10 @@ contract SavingsToken is ERC20 {
 		if (interest > 0 && totalSupply() > 0) {
 			totalClaimed += interest;
 			price += (interest * 1 ether) / totalSupply();
+		} else {
+			// to reset params to initial values
+			totalClaimed = 0;
+			price = 1 ether;
 		}
 
 		zchf.safeTransferFrom(msg.sender, address(this), amount);
@@ -85,10 +89,11 @@ contract SavingsToken is ERC20 {
 	}
 
 	// ---------------------------------------------------------------------------------------
+	// adjust by interests
 
 	function priceAdjusted() public view returns (uint256) {
 		uint256 totS = totalSupply();
-		if (totS == 0) return 0;
+		if (totS == 0) return price;
 		uint256 interest = uint256(savings.accruedInterest(address(this)));
 		return price + (interest * 1 ether) / totalSupply();
 	}
