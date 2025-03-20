@@ -1,5 +1,5 @@
 {
-	"name": "@wrytlabs/frankencoin-savings-utils",
+	"name": "@wrytlabs/frankencoin-utils",
 	"version": "0.0.1",
 	"private": false,
 	"license": "MIT",
@@ -7,7 +7,7 @@
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"author": "samclassix <samclassix@proton.me>, wrytlabs <wrytlabs@proton.me>",
-	"description": "Research and Development for a Frankencoin Savings Wrapper",
+	"description": "Research and Development for a Frankencoin Utils",
 	"directories": {
 		"doc": "docs",
 		"test": "tests"
