@@ -57,7 +57,7 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 
 	// ---------------------------------------------------------------------------------------
 
-	function setMarket(MarketParams memory marketParams) public onlyOwner {
+	function setMarket(MarketParams memory marketParams) external onlyOwner {
 		market = marketParams;
 	}
 
@@ -72,6 +72,19 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 					marketParams.lltv
 				)
 			);
+	}
+
+	// ---------------------------------------------------------------------------------------
+
+	function encodePath(address[] memory tokens, uint24[] memory fees) public pure returns (bytes memory) {
+		if (tokens.length < 2 || tokens.length - 1 != fees.length) revert WrongEncodePathInputs();
+
+		bytes memory path = new bytes(0);
+		for (uint256 i = 0; i < fees.length; i++) {
+			path = abi.encodePacked(path, tokens[i], fees[i]);
+		}
+
+		return abi.encodePacked(path, tokens[tokens.length - 1]);
 	}
 
 	// ---------------------------------------------------------------------------------------
@@ -96,13 +109,13 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 		morpho.withdrawCollateral(market, assets, address(this), target);
 	}
 
-	function recover(address coin, address target, uint256 amount) public onlyOwner {
+	function recover(address coin, address target, uint256 amount) external onlyOwner {
 		IERC20(coin).transfer(target, amount);
 	}
 
 	// ---------------------------------------------------------------------------------------
 
-	function borrow(uint256 assets) public onlyOwner returns (uint256 assetsBorrowed, uint256 sharesBorrowed) {
+	function borrow(uint256 assets) external onlyOwner returns (uint256 assetsBorrowed, uint256 sharesBorrowed) {
 		return _borrow(msg.sender, assets);
 	}
 
@@ -112,7 +125,7 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 
 	// ---------------------------------------------------------------------------------------
 
-	function repay(uint256 assets) public onlyOwner returns (uint256 assetsRepaid, uint256 sharesRepaid) {
+	function repay(uint256 assets) external onlyOwner returns (uint256 assetsRepaid, uint256 sharesRepaid) {
 		loan.transferFrom(msg.sender, address(this), assets); // needs allowance
 		return _repay(assets);
 	}
@@ -120,19 +133,6 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 	function _repay(uint256 assets) internal returns (uint256 assetsRepaid, uint256 sharesRepaid) {
 		loan.approve(address(morpho), assets);
 		(assetsRepaid, sharesRepaid) = morpho.repay(market, assets, 0, address(this), new bytes(0));
-	}
-
-	// ---------------------------------------------------------------------------------------
-
-	function encodePath(address[] memory tokens, uint24[] memory fees) public pure returns (bytes memory) {
-		if (tokens.length < 2 || tokens.length - 1 != fees.length) revert WrongEncodePathInputs();
-
-		bytes memory path = new bytes(0);
-		for (uint256 i = 0; i < fees.length; i++) {
-			path = abi.encodePacked(path, tokens[i], fees[i]);
-		}
-
-		return abi.encodePacked(path, tokens[tokens.length - 1]);
 	}
 
 	// ---------------------------------------------------------------------------------------
@@ -241,7 +241,7 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 			// borrow for flashloan repayment
 			_borrow(address(this), assets);
 
-			// flashloan token is loan token
+			// approve for flashloan repayment (loan)
 			loan.approve(address(morpho), assets);
 
 			emit Executed(INCREASE_LEVERAGE, assets, amountIn, amountOut, collateralAmount);
@@ -267,7 +267,7 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 			// withdraw collateral for flashloan repayment
 			_withdrawCollateral(address(this), assets);
 
-			// flashloan token is collateral token
+			// approve for flashloan repayment (collateral)
 			collateral.approve(address(morpho), assets);
 
 			emit Executed(DECREASE_LEVERAGE, assets, amountIn, amountOut, repayAmount);
@@ -297,8 +297,8 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 			uint256 equity = amountOut - assets;
 			loan.transfer(owner(), equity);
 
-			// flashloan is collateral token
-			collateral.approve(address(morpho), assets);
+			// approve for flashloan repayment (loan)
+			loan.approve(address(morpho), assets);
 
 			emit Executed(CLOSE_POSITION, assets, p.collateral, amountOut, equity);
 		} else revert InvalidOpcode(opcode);
