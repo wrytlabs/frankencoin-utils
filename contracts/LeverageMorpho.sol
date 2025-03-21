@@ -224,7 +224,8 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 				amountOutMinimum: amountOutMinimum
 			});
 
-			// execute swap
+			// approve and execute swap
+			loan.approve(address(uniswap), amountIn);
 			amountOut = uniswap.exactInput(params);
 
 			// supply collateral - includes any ERC20 Transfers from before
@@ -249,17 +250,18 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 				amountOutMinimum: amountOutMinimum
 			});
 
-			// execute swap
+			// approve and execute swap
+			collateral.approve(address(uniswap), amountIn);
 			amountOut = uniswap.exactInput(params);
 
 			// repay loan - includes any ERC20 Transfers from before
 			uint256 repayAmount = loan.balanceOf(address(this));
 			_repay(repayAmount);
 
-			// borrow for flashloan repayment
+			// withdraw collateral for flashloan repayment
 			_withdrawCollateral(assets, false);
 
-			// flashloan token is loan token
+			// flashloan token is collateral token
 			collateral.approve(address(morpho), assets);
 
 			emit Executed(DECREASE_LEVERAGE, assets, amountIn, amountOut, repayAmount);
