@@ -1,6 +1,6 @@
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
 import { storeConstructorArgs } from '../../helper/store.args';
-import { args, params } from '../params/LeverageMorpho';
+import { args, params } from '../params/LeverageMorpho'; // <-- check for correct import
 
 export const NAME: string = 'LeverageMorpho';
 export const MOD: string = NAME + 'Module';
@@ -14,6 +14,9 @@ console.log(params);
 storeConstructorArgs(NAME, args);
 console.log('Constructor Args');
 console.log(args);
+
+// fail safe
+process.exit();
 
 export default buildModule(MOD, (m) => {
 	return {

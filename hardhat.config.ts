@@ -46,7 +46,7 @@ const config: HardhatUserConfig = {
 			url: `https://eth-mainnet.g.alchemy.com/v2/${alchemy}`,
 			chainId: 1,
 			gas: 'auto',
-			gasPrice: 'auto',
+			gasPrice: 380000000,
 			accounts: [wallet.privateKey],
 			timeout: 50_000,
 		},
