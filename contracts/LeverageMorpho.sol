@@ -44,7 +44,7 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 	MarketParams public market;
 
 	// events
-	event Swapped(uint256 loanTknAmount, uint256 collTknAmount, bool direction, uint256 oraclePrice);
+	event Executed(uint8 opcode, uint256 flash, uint256 swapIn, uint256 swapOut, uint256 provided);
 
 	// errors
 	error NotMorpho();
@@ -211,16 +211,17 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 		uint256 amountOut;
 
 		// decode
-		(uint8 opcode, bytes memory path, uint256 minAmountOut) = abi.decode(data, (uint8, bytes, uint256));
+		(uint8 opcode, bytes memory path, uint256 amountOutMinimum) = abi.decode(data, (uint8, bytes, uint256));
 
 		if (opcode == INCREASE_LEVERAGE) {
 			// swap flashloan loan --> collateral
+			uint256 amountIn = loan.balanceOf(address(this));
 			ISwapRouter.ExactInputParams memory params = ISwapRouter.ExactInputParams({
 				path: path,
 				recipient: address(this),
 				deadline: block.timestamp + 600,
-				amountIn: loan.balanceOf(address(this)), // take all
-				amountOutMinimum: minAmountOut
+				amountIn: amountIn,
+				amountOutMinimum: amountOutMinimum
 			});
 
 			// execute swap
@@ -235,30 +236,33 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 
 			// flashloan token is loan token
 			loan.approve(address(morpho), assets);
+
+			emit Executed(INCREASE_LEVERAGE, assets, amountIn, amountOut, collateralAmount);
 		} else if (opcode == DECREASE_LEVERAGE) {
 			// swap flashloan collateral --> loan
+			uint256 amountIn = collateral.balanceOf(address(this));
 			ISwapRouter.ExactInputParams memory params = ISwapRouter.ExactInputParams({
 				path: path,
 				recipient: address(this),
 				deadline: block.timestamp + 600,
-				amountIn: collateral.balanceOf(address(this)),
-				amountOutMinimum: minAmountOut
+				amountIn: amountIn,
+				amountOutMinimum: amountOutMinimum
 			});
 
 			// execute swap
 			amountOut = uniswap.exactInput(params);
 
 			// repay loan - includes any ERC20 Transfers from before
-			uint256 loanAmount = loan.balanceOf(address(this));
-			_repay(loanAmount);
+			uint256 repayAmount = loan.balanceOf(address(this));
+			_repay(repayAmount);
 
 			// borrow for flashloan repayment
 			_withdrawCollateral(assets, false);
 
 			// flashloan token is loan token
 			collateral.approve(address(morpho), assets);
-		} else revert InvalidOpcode(opcode);
 
-		// emit
+			emit Executed(DECREASE_LEVERAGE, assets, amountIn, amountOut, repayAmount);
+		} else revert InvalidOpcode(opcode);
 	}
 }
