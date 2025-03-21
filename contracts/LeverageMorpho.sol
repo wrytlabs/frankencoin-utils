@@ -9,10 +9,12 @@ import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ISwapRouter} from '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 
 import {IMorpho, MarketParams, Id, Position, Market} from './morpho/IMorpho.sol';
+import {SharesMathLib} from './morpho/SharesMathLib.sol';
 import {IMorphoFlashLoanCallback} from './morpho/IMorphoCallbacks.sol';
 
 contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 	using Math for uint256;
+	using SharesMathLib for uint256;
 
 	IMorpho private immutable morpho;
 	IERC20 public immutable loan;
@@ -130,9 +132,19 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 		return _repay(assets);
 	}
 
+	// TODO: remove function
+	function repayShares(uint256 shares) external onlyOwner returns (uint256 assetsRepaid, uint256 sharesRepaid) {
+		return _repayShares(shares);
+	}
+
 	function _repay(uint256 assets) internal returns (uint256 assetsRepaid, uint256 sharesRepaid) {
 		loan.approve(address(morpho), assets);
 		(assetsRepaid, sharesRepaid) = morpho.repay(market, assets, 0, address(this), new bytes(0));
+	}
+
+	function _repayShares(uint256 shares) internal returns (uint256 assetsRepaid, uint256 sharesRepaid) {
+		loan.approve(address(morpho), type(uint256).max);
+		(assetsRepaid, sharesRepaid) = morpho.repay(market, 0, shares, address(this), new bytes(0));
 	}
 
 	// ---------------------------------------------------------------------------------------
@@ -204,7 +216,7 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 		Id marketId = Id.wrap(getMarketId(market));
 		Position memory p = morpho.position(marketId, address(this));
 		Market memory m = morpho.market(marketId);
-		uint256 assets = (p.borrowShares * m.totalBorrowAssets) / m.totalBorrowShares; // repay amount
+		uint256 assets = uint256(p.borrowShares).toAssetsUp(m.totalBorrowAssets, m.totalBorrowShares) * 2; // @dev: 2x the amount
 
 		// perform flashloan with data
 		bytes memory data = abi.encode(CLOSE_POSITION, encodePath(tokens, fees), amountOutMinimum);
@@ -272,12 +284,14 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 
 			emit Executed(DECREASE_LEVERAGE, assets, amountIn, amountOut, repayAmount);
 		} else if (opcode == CLOSE_POSITION) {
-			// repay loan
-			_repay(assets);
-
-			// withdraw collateral
+			// get infos
 			Id marketId = Id.wrap(getMarketId(market));
 			Position memory p = morpho.position(marketId, address(this));
+
+			// repay loan
+			_repayShares(p.borrowShares);
+
+			// withdraw collateral
 			_withdrawCollateral(address(this), p.collateral);
 
 			// swap collateral --> loan
@@ -294,7 +308,7 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 			uint256 amountOut = uniswap.exactInput(params);
 
 			// transfer equity balance
-			uint256 equity = amountOut - assets;
+			uint256 equity = loan.balanceOf(address(this)) - assets;
 			loan.transfer(owner(), equity);
 
 			// approve for flashloan repayment (loan)
