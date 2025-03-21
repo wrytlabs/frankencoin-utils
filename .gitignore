@@ -6,7 +6,9 @@
 .states
 /cache
 /artifacts
+/contracts/**/artifacts
 /abi
+.deploys
 
 # TypeChain files
 /typechain
