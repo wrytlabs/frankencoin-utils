@@ -7,7 +7,7 @@
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"author": "samclassix <samclassix@proton.me>, wrytlabs <wrytlabs@proton.me>",
-	"description": "Research and Development for a Frankencoin Utils",
+	"description": "Research and Development for Frankencoin Utils",
 	"directories": {
 		"doc": "docs",
 		"test": "tests"
