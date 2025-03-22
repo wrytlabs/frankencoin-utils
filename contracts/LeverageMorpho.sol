@@ -17,9 +17,9 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 	using SharesMathLib for uint256;
 
 	IMorpho private immutable morpho;
+	ISwapRouter private immutable uniswap;
 	IERC20 public immutable loan;
 	IERC20 public immutable collateral;
-	ISwapRouter public immutable uniswap;
 
 	// opcodes
 	uint8 private constant INCREASE_LEVERAGE = 0;
@@ -60,10 +60,6 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 	}
 
 	// ---------------------------------------------------------------------------------------
-
-	function setMarket(MarketParams memory marketParams) external onlyOwner {
-		market = marketParams;
-	}
 
 	function getMarketId(MarketParams memory marketParams) public pure returns (bytes32) {
 		return
