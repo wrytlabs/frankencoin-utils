@@ -30,6 +30,8 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 	MarketParams public market;
 
 	// events
+	event Collateral(uint256 amount, bool direction);
+	event Loan(uint256 amount, bool direction);
 	event Executed(uint8 opcode, uint256 flash, uint256 swapIn, uint256 swapOut, uint256 provided);
 
 	// errors
@@ -94,6 +96,7 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 	function supplyCollateral(uint256 assets) external onlyOwner {
 		collateral.transferFrom(msg.sender, address(this), assets); // needs allowance
 		_supplyCollateral(assets);
+		emit Collateral(assets, false);
 	}
 
 	function _supplyCollateral(uint256 assets) internal {
@@ -105,6 +108,7 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 
 	function withdrawCollateral(uint256 assets) external onlyOwner {
 		_withdrawCollateral(msg.sender, assets);
+		emit Collateral(assets, true);
 	}
 
 	function _withdrawCollateral(address target, uint256 assets) internal {
@@ -118,7 +122,8 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 	// ---------------------------------------------------------------------------------------
 
 	function borrow(uint256 assets) external onlyOwner returns (uint256 assetsBorrowed, uint256 sharesBorrowed) {
-		return _borrow(msg.sender, assets);
+		(assetsBorrowed, sharesBorrowed) = _borrow(msg.sender, assets);
+		emit Loan(assets, false);
 	}
 
 	function _borrow(address target, uint256 assets) internal returns (uint256 assetsBorrowed, uint256 sharesBorrowed) {
@@ -129,12 +134,8 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 
 	function repay(uint256 assets) external onlyOwner returns (uint256 assetsRepaid, uint256 sharesRepaid) {
 		loan.transferFrom(msg.sender, address(this), assets); // needs allowance
-		return _repay(assets);
-	}
-
-	// TODO: remove function
-	function repayShares(uint256 shares) external onlyOwner returns (uint256 assetsRepaid, uint256 sharesRepaid) {
-		return _repayShares(shares);
+		(assetsRepaid, sharesRepaid) = _repay(assets);
+		emit Loan(assets, true);
 	}
 
 	function _repay(uint256 assets) internal returns (uint256 assetsRepaid, uint256 sharesRepaid) {
@@ -216,7 +217,7 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 		Id marketId = Id.wrap(getMarketId(market));
 		Position memory p = morpho.position(marketId, address(this));
 		Market memory m = morpho.market(marketId);
-		uint256 assets = uint256(p.borrowShares).toAssetsUp(m.totalBorrowAssets, m.totalBorrowShares) * 2; // @dev: 2x the amount
+		uint256 assets = (uint256(p.borrowShares).toAssetsUp(m.totalBorrowAssets, m.totalBorrowShares) * 11) / 10; // 110% (+10%)
 
 		// perform flashloan with data
 		bytes memory data = abi.encode(CLOSE_POSITION, encodePath(tokens, fees), amountOutMinimum);
