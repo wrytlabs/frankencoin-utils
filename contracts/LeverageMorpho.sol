@@ -15,6 +15,7 @@ import {IMorphoFlashLoanCallback} from './morpho/IMorphoCallbacks.sol';
 contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 	using Math for uint256;
 	using SharesMathLib for uint256;
+	using SafeERC20 for IERC20;
 
 	IMorpho private immutable morpho;
 	ISwapRouter private immutable uniswap;
@@ -90,13 +91,13 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 	// ---------------------------------------------------------------------------------------
 
 	function supplyCollateral(uint256 assets) external onlyOwner {
-		collateral.transferFrom(msg.sender, address(this), assets); // needs allowance
+		collateral.safeTransferFrom(msg.sender, address(this), assets); // needs allowance
 		_supplyCollateral(assets);
 		emit Collateral(assets, false);
 	}
 
 	function _supplyCollateral(uint256 assets) internal {
-		collateral.approve(address(morpho), assets);
+		collateral.forceApprove(address(morpho), assets);
 		morpho.supplyCollateral(market, assets, address(this), new bytes(0));
 	}
 
@@ -129,18 +130,18 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 	// ---------------------------------------------------------------------------------------
 
 	function repay(uint256 assets) external onlyOwner returns (uint256 assetsRepaid, uint256 sharesRepaid) {
-		loan.transferFrom(msg.sender, address(this), assets); // needs allowance
+		loan.safeTransferFrom(msg.sender, address(this), assets); // needs allowance
 		(assetsRepaid, sharesRepaid) = _repay(assets);
 		emit Loan(assets, true);
 	}
 
 	function _repay(uint256 assets) internal returns (uint256 assetsRepaid, uint256 sharesRepaid) {
-		loan.approve(address(morpho), assets);
+		loan.forceApprove(address(morpho), assets);
 		(assetsRepaid, sharesRepaid) = morpho.repay(market, assets, 0, address(this), new bytes(0));
 	}
 
 	function _repayShares(uint256 shares) internal returns (uint256 assetsRepaid, uint256 sharesRepaid) {
-		loan.approve(address(morpho), type(uint256).max);
+		loan.forceApprove(address(morpho), type(uint256).max);
 		(assetsRepaid, sharesRepaid) = morpho.repay(market, 0, shares, address(this), new bytes(0));
 	}
 
@@ -162,14 +163,14 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 
 		// add additional funds
 		if (walletLoan > 0) {
-			loan.transferFrom(msg.sender, address(this), walletLoan); // needs allowance (loan tkn)
+			loan.safeTransferFrom(msg.sender, address(this), walletLoan); // needs allowance (loan tkn)
 		}
 		if (walletColl > 0) {
-			collateral.transferFrom(msg.sender, address(this), walletColl); // needs allowance (coll tkn)
+			collateral.safeTransferFrom(msg.sender, address(this), walletColl); // needs allowance (coll tkn)
 		}
 
 		// perform flashloan with data
-		bytes memory data = abi.encode(INCREASE_LEVERAGE, encodePath(tokens, fees), amountOutMinimum);
+		bytes memory data = abi.encode(INCREASE_LEVERAGE, encodePath(tokens, fees), amountOutMinimum); // FIXME: move encodePath to off-chain
 		morpho.flashLoan(address(loan), assets, data);
 	}
 
@@ -191,14 +192,14 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 
 		// add additional funds
 		if (walletLoan > 0) {
-			loan.transferFrom(msg.sender, address(this), walletLoan); // needs allowance (loan tkn)
+			loan.safeTransferFrom(msg.sender, address(this), walletLoan); // needs allowance (loan tkn)
 		}
 		if (walletColl > 0) {
-			collateral.transferFrom(msg.sender, address(this), walletColl); // needs allowance (coll tkn)
+			collateral.safeTransferFrom(msg.sender, address(this), walletColl); // needs allowance (coll tkn)
 		}
 
 		// perform flashloan with data
-		bytes memory data = abi.encode(DECREASE_LEVERAGE, encodePath(tokens, fees), amountOutMinimum);
+		bytes memory data = abi.encode(DECREASE_LEVERAGE, encodePath(tokens, fees), amountOutMinimum); // FIXME: move encodePath to off-chain
 		morpho.flashLoan(address(collateral), assets, data);
 	}
 
@@ -216,7 +217,7 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 		uint256 assets = (uint256(p.borrowShares).toAssetsUp(m.totalBorrowAssets, m.totalBorrowShares) * 11) / 10; // 110% (+10%)
 
 		// perform flashloan with data
-		bytes memory data = abi.encode(CLOSE_POSITION, encodePath(tokens, fees), amountOutMinimum);
+		bytes memory data = abi.encode(CLOSE_POSITION, encodePath(tokens, fees), amountOutMinimum); // FIXME: move encodePath to off-chain
 		morpho.flashLoan(address(loan), assets, data);
 	}
 
@@ -239,8 +240,8 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 				amountOutMinimum: amountOutMinimum
 			});
 
-			// approve and execute swap
-			loan.approve(address(uniswap), amountIn);
+			// forceApprove and execute swap
+			loan.forceApprove(address(uniswap), amountIn);
 			uint256 amountOut = uniswap.exactInput(params);
 
 			// supply collateral - includes any ERC20 Transfers from before
@@ -250,8 +251,8 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 			// borrow for flashloan repayment
 			_borrow(address(this), assets);
 
-			// approve for flashloan repayment (loan)
-			loan.approve(address(morpho), assets);
+			// forceApprove for flashloan repayment (loan)
+			loan.forceApprove(address(morpho), assets);
 
 			emit Executed(INCREASE_LEVERAGE, assets, amountIn, amountOut, collateralAmount);
 		} else if (opcode == DECREASE_LEVERAGE) {
@@ -265,8 +266,8 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 				amountOutMinimum: amountOutMinimum
 			});
 
-			// approve and execute swap
-			collateral.approve(address(uniswap), amountIn);
+			// forceApprove and execute swap
+			collateral.forceApprove(address(uniswap), amountIn);
 			uint256 amountOut = uniswap.exactInput(params);
 
 			// repay loan - includes any ERC20 Transfers from before
@@ -276,8 +277,8 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 			// withdraw collateral for flashloan repayment
 			_withdrawCollateral(address(this), assets);
 
-			// approve for flashloan repayment (collateral)
-			collateral.approve(address(morpho), assets);
+			// forceApprove for flashloan repayment (collateral)
+			collateral.forceApprove(address(morpho), assets);
 
 			emit Executed(DECREASE_LEVERAGE, assets, amountIn, amountOut, repayAmount);
 		} else if (opcode == CLOSE_POSITION) {
@@ -300,16 +301,16 @@ contract LeverageMorpho is Ownable, IMorphoFlashLoanCallback {
 				amountOutMinimum: amountOutMinimum
 			});
 
-			// approve and execute swap
-			collateral.approve(address(uniswap), p.collateral);
+			// forceApprove and execute swap
+			collateral.forceApprove(address(uniswap), p.collateral);
 			uint256 amountOut = uniswap.exactInput(params);
 
 			// transfer equity balance
 			uint256 equity = loan.balanceOf(address(this)) - assets;
 			loan.transfer(owner(), equity);
 
-			// approve for flashloan repayment (loan)
-			loan.approve(address(morpho), assets);
+			// forceApprove for flashloan repayment (loan)
+			loan.forceApprove(address(morpho), assets);
 
 			emit Executed(CLOSE_POSITION, assets, p.collateral, amountOut, equity);
 		} else revert InvalidOpcode(opcode);
