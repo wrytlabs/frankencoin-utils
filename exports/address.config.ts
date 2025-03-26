@@ -7,6 +7,6 @@ export interface ChainAddress {
 
 export const ADDRESS: Record<number, ChainAddress> = {
 	[mainnet.id]: {
-		leverageMorphoFactory: '0xf58938ffB91301c1d34c5Aab76054f152fFD608c',
+		leverageMorphoFactory: '0x33dD53A0d5bb2E754e32d034F434bE85250a957D',
 	},
 };
