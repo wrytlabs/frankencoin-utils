@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
 import {ISwapRouter} from '@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol';
 
@@ -14,7 +15,7 @@ import {IFrankencoin} from './frankencoin/IFrankencoin.sol';
 import {IMintingHubV2Bidder} from './frankencoin/IMintingHubV2Bidder.sol';
 import {IPositionV2} from './frankencoin/IPositionV2.sol';
 
-contract BidderMorphoV2 is IMorphoFlashLoanCallback {
+contract BidderMorphoV2 is Ownable, IMorphoFlashLoanCallback {
 	using Math for uint256;
 	using SafeERC20 for IERC20;
 
@@ -35,7 +36,7 @@ contract BidderMorphoV2 is IMorphoFlashLoanCallback {
 
 	// ---------------------------------------------------------------------------------------
 
-	constructor(address _morpho, address _uniswap, address _zchf, address _hubV2) {
+	constructor(address _morpho, address _uniswap, address _zchf, address _hubV2, address _owner) Ownable(_owner) {
 		morpho = IMorpho(_morpho);
 		uniswap = ISwapRouter(_uniswap);
 		zchf = IERC20(_zchf);
@@ -76,7 +77,7 @@ contract BidderMorphoV2 is IMorphoFlashLoanCallback {
 		uint256 assets = (size * price) / 1 ether;
 
 		// execute zchf flash
-		bytes memory data = abi.encode(msg.sender, index, address(position.collateral()), size, path);
+		bytes memory data = abi.encode(index, address(position.collateral()), size, path);
 		morpho.flashLoan(address(zchf), assets, data);
 	}
 
@@ -86,9 +87,9 @@ contract BidderMorphoV2 is IMorphoFlashLoanCallback {
 		if (msg.sender != address(morpho)) revert NotMorpho();
 
 		// decode
-		(address sender, uint32 index, address collateral, uint256 size, bytes memory path) = abi.decode(
+		(uint32 index, address collateral, uint256 size, bytes memory path) = abi.decode(
 			data,
-			(address, uint32, address, uint256, bytes)
+			(uint32, address, uint256, bytes)
 		);
 
 		// take bid (loan --> collateral)
@@ -108,7 +109,7 @@ contract BidderMorphoV2 is IMorphoFlashLoanCallback {
 		uint256 amountOut = uniswap.exactInput(params);
 
 		// transfer profit
-		zchf.transfer(sender, amountOut - assets);
+		zchf.transfer(owner(), amountOut - assets);
 
 		// forceApprove for flashloan repayment
 		zchf.forceApprove(address(morpho), assets);
