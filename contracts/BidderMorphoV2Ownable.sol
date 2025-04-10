@@ -61,7 +61,7 @@ contract BidderMorphoV2Ownable is Ownable, IMorphoFlashLoanCallback {
 	// The smart contract doesn't perform path validation checks,
 	// as invalid paths will cause the transaction to revert anyway.
 
-	function execute(uint32 index, uint256 amount, bytes calldata path) external {
+	function execute(uint32 index, uint256 amount, bytes calldata path) external onlyOwner {
 		// get challenge data
 		(, , IPositionV2 position, uint256 size) = hub.challenges(index);
 		if (size == 0) revert NoCollateral();
