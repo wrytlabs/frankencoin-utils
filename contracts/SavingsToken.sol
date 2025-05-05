@@ -16,7 +16,7 @@ contract SavingsToken is ERC20 {
 	ISavings public immutable savings;
 
 	uint256 public totalClaimed;
-	uint256 public price = 1 ether;
+	uint256 private price = 1 ether;
 
 	// ---------------------------------------------------------------------------------------
 
@@ -45,16 +45,7 @@ contract SavingsToken is ERC20 {
 	}
 
 	function saveTo(address account, uint256 amount) public {
-		uint256 interest = uint256(savings.accruedInterest(address(this)));
-
-		if (interest > 0 && totalSupply() > 0) {
-			totalClaimed += interest;
-			price += (interest * 1 ether) / totalSupply();
-		} else {
-			// to reset params to initial values
-			totalClaimed = 0;
-			price = 1 ether;
-		}
+		_update();
 
 		zchf.safeTransferFrom(msg.sender, address(this), amount);
 		savings.save(uint192(amount));
@@ -73,12 +64,7 @@ contract SavingsToken is ERC20 {
 	}
 
 	function withdrawTo(address target, uint256 amount) public {
-		uint256 interest = uint256(savings.accruedInterest(address(this)));
-
-		if (interest > 0 && totalSupply() > 0) {
-			totalClaimed += interest;
-			price += (interest * 1 ether) / totalSupply();
-		}
+		_update();
 
 		_burn(msg.sender, amount);
 
@@ -89,9 +75,19 @@ contract SavingsToken is ERC20 {
 	}
 
 	// ---------------------------------------------------------------------------------------
-	// adjust by interests
 
-	function priceAdjusted() public view returns (uint256) {
+	function _update() internal {
+		uint256 interest = uint256(savings.accruedInterest(address(this)));
+
+		if (interest > 0 && totalSupply() > 0) {
+			totalClaimed += interest;
+			price += (interest * 1 ether) / totalSupply();
+		}
+	}
+
+	// ---------------------------------------------------------------------------------------
+
+	function convertToAsset() public view returns (uint256) {
 		uint256 totS = totalSupply();
 		if (totS == 0) return price;
 		uint256 interest = uint256(savings.accruedInterest(address(this)));

@@ -1,5 +1,128 @@
 export const ISavingsTokenABI = [
 	{
+		inputs: [
+			{
+				internalType: 'contract IERC20',
+				name: '_zchf',
+				type: 'address',
+			},
+			{
+				internalType: 'contract ISavings',
+				name: '_savings',
+				type: 'address',
+			},
+			{
+				internalType: 'string',
+				name: 'name',
+				type: 'string',
+			},
+			{
+				internalType: 'string',
+				name: 'symbol',
+				type: 'string',
+			},
+		],
+		stateMutability: 'nonpayable',
+		type: 'constructor',
+	},
+	{
+		inputs: [
+			{
+				internalType: 'address',
+				name: 'spender',
+				type: 'address',
+			},
+			{
+				internalType: 'uint256',
+				name: 'allowance',
+				type: 'uint256',
+			},
+			{
+				internalType: 'uint256',
+				name: 'needed',
+				type: 'uint256',
+			},
+		],
+		name: 'ERC20InsufficientAllowance',
+		type: 'error',
+	},
+	{
+		inputs: [
+			{
+				internalType: 'address',
+				name: 'sender',
+				type: 'address',
+			},
+			{
+				internalType: 'uint256',
+				name: 'balance',
+				type: 'uint256',
+			},
+			{
+				internalType: 'uint256',
+				name: 'needed',
+				type: 'uint256',
+			},
+		],
+		name: 'ERC20InsufficientBalance',
+		type: 'error',
+	},
+	{
+		inputs: [
+			{
+				internalType: 'address',
+				name: 'approver',
+				type: 'address',
+			},
+		],
+		name: 'ERC20InvalidApprover',
+		type: 'error',
+	},
+	{
+		inputs: [
+			{
+				internalType: 'address',
+				name: 'receiver',
+				type: 'address',
+			},
+		],
+		name: 'ERC20InvalidReceiver',
+		type: 'error',
+	},
+	{
+		inputs: [
+			{
+				internalType: 'address',
+				name: 'sender',
+				type: 'address',
+			},
+		],
+		name: 'ERC20InvalidSender',
+		type: 'error',
+	},
+	{
+		inputs: [
+			{
+				internalType: 'address',
+				name: 'spender',
+				type: 'address',
+			},
+		],
+		name: 'ERC20InvalidSpender',
+		type: 'error',
+	},
+	{
+		inputs: [
+			{
+				internalType: 'address',
+				name: 'token',
+				type: 'address',
+			},
+		],
+		name: 'SafeERC20FailedOperation',
+		type: 'error',
+	},
+	{
 		anonymous: false,
 		inputs: [
 			{
@@ -180,6 +303,32 @@ export const ISavingsTokenABI = [
 	},
 	{
 		inputs: [],
+		name: 'convertToAsset',
+		outputs: [
+			{
+				internalType: 'uint256',
+				name: '',
+				type: 'uint256',
+			},
+		],
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		inputs: [],
+		name: 'decimals',
+		outputs: [
+			{
+				internalType: 'uint8',
+				name: '',
+				type: 'uint8',
+			},
+		],
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		inputs: [],
 		name: 'isUnlocked',
 		outputs: [
 			{
@@ -193,25 +342,12 @@ export const ISavingsTokenABI = [
 	},
 	{
 		inputs: [],
-		name: 'price',
+		name: 'name',
 		outputs: [
 			{
-				internalType: 'uint256',
+				internalType: 'string',
 				name: '',
-				type: 'uint256',
-			},
-		],
-		stateMutability: 'view',
-		type: 'function',
-	},
-	{
-		inputs: [],
-		name: 'priceAdjusted',
-		outputs: [
-			{
-				internalType: 'uint256',
-				name: '',
-				type: 'uint256',
+				type: 'string',
 			},
 		],
 		stateMutability: 'view',
@@ -275,6 +411,38 @@ export const ISavingsTokenABI = [
 				internalType: 'contract ISavings',
 				name: '',
 				type: 'address',
+			},
+		],
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		inputs: [
+			{
+				internalType: 'bytes4',
+				name: 'interfaceId',
+				type: 'bytes4',
+			},
+		],
+		name: 'supportsInterface',
+		outputs: [
+			{
+				internalType: 'bool',
+				name: '',
+				type: 'bool',
+			},
+		],
+		stateMutability: 'view',
+		type: 'function',
+	},
+	{
+		inputs: [],
+		name: 'symbol',
+		outputs: [
+			{
+				internalType: 'string',
+				name: '',
+				type: 'string',
 			},
 		],
 		stateMutability: 'view',
