@@ -20,11 +20,11 @@ contract SavingsToken is ERC20 {
 
 	// ---------------------------------------------------------------------------------------
 
-	event Saved(address indexed saver, uint256 amountIn, uint256 amountOut, uint256 price);
-	event Withdrawn(address indexed saver, uint256 amountIn, uint256 amountOut, uint256 price);
+	event Saved(address indexed saver, uint256 amountIn, uint256 sharesMinted, uint256 price);
+	event Withdrawn(address indexed saver, uint256 sharesBurned, uint256 amountOut, uint256 price);
 
 	// ---------------------------------------------------------------------------------------
-	// name: "Savings Token for Frankencoin ZCHF", symbol: "stZCHF"
+	// name: "Savings for Frankencoin ZCHF", symbol: "sZCHF"
 
 	constructor(IERC20 _zchf, ISavings _savings, string memory name, string memory symbol) ERC20(name, symbol) {
 		zchf = _zchf;
@@ -40,38 +40,41 @@ contract SavingsToken is ERC20 {
 	// ---------------------------------------------------------------------------------------
 	// input token is ZCHF, output token is stZCHF
 
-	function save(uint256 amount) public {
-		saveTo(msg.sender, amount);
+	function save(uint256 amount) public returns (uint256) {
+		return saveTo(msg.sender, amount);
 	}
 
-	function saveTo(address account, uint256 amount) public {
+	function saveTo(address account, uint256 amount) public returns (uint256) {
 		_update();
 
 		zchf.safeTransferFrom(msg.sender, address(this), amount);
 		savings.save(uint192(amount));
 
-		uint256 amountOut = (amount * 1 ether) / price;
-		_mint(account, amountOut);
+		uint256 shares = (amount * 1 ether) / price;
+		_mint(account, shares);
 
-		emit Saved(account, amount, amountOut, price);
+		emit Saved(account, amount, shares, price);
+		return shares;
 	}
 
 	// ---------------------------------------------------------------------------------------
 	// input token is stZCHF, output token is ZCHF
 
-	function withdraw(uint256 amount) public {
-		withdrawTo(msg.sender, amount);
+	function withdraw(uint256 shares) public returns (uint256) {
+		return withdrawTo(msg.sender, shares);
 	}
 
-	function withdrawTo(address target, uint256 amount) public {
+	function withdrawTo(address target, uint256 shares) public returns (uint256) {
 		_update();
 
-		_burn(msg.sender, amount);
+		_burn(msg.sender, shares);
 
-		uint256 amountOut = (amount * price) / 1 ether;
+		// @dev: calc amountOut, but make sure to withdraw max if all shares are burned
+		uint256 amountOut = (shares * price) / 1 ether;
 		amountOut = savings.withdraw(target, totalSupply() == 0 ? type(uint192).max : uint192(amountOut));
 
-		emit Withdrawn(target, amount, amountOut, price);
+		emit Withdrawn(target, shares, amountOut, price);
+		return amountOut;
 	}
 
 	// ---------------------------------------------------------------------------------------

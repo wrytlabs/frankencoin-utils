@@ -12,9 +12,7 @@ interface ISavingsToken is IERC20 {
 
 	function totalClaimed() external view returns (uint256);
 
-	function price() external view returns (uint256);
-
-	function priceAdjusted() external view returns (uint256);
+	function convertToAsset() external view returns (uint256);
 
 	function totalBalance() external view returns (uint256);
 
@@ -25,15 +23,15 @@ interface ISavingsToken is IERC20 {
 	function untilUnlocked() external view returns (uint256);
 
 	// State-changing functions
-	function save(uint256 amount) external;
+	function save(uint256 amount) external returns (uint256);
 
-	function saveTo(address account, uint256 amount) external;
+	function saveTo(address account, uint256 amount) external returns (uint256);
 
-	function withdraw(uint256 amount) external;
+	function withdraw(uint256 amount) external returns (uint256);
 
-	function withdrawTo(address target, uint256 amount) external;
+	function withdrawTo(address target, uint256 amount) external returns (uint256);
 
 	// Events
-	event Saved(address indexed saver, uint256 amountIn, uint256 amountOut, uint256 price);
-	event Withdrawn(address indexed saver, uint256 amountIn, uint256 amountOut, uint256 price);
+	event Saved(address indexed saver, uint256 amountIn, uint256 sharesMinted, uint256 price);
+	event Withdrawn(address indexed saver, uint256 sharesBurned, uint256 amountOut, uint256 price);
 }
