@@ -165,7 +165,7 @@ export const ISavingsTokenABI = [
 			{
 				indexed: false,
 				internalType: 'uint256',
-				name: 'amountOut',
+				name: 'sharesMinted',
 				type: 'uint256',
 			},
 			{
@@ -215,7 +215,7 @@ export const ISavingsTokenABI = [
 			{
 				indexed: false,
 				internalType: 'uint256',
-				name: 'amountIn',
+				name: 'sharesBurned',
 				type: 'uint256',
 			},
 			{
@@ -362,7 +362,13 @@ export const ISavingsTokenABI = [
 			},
 		],
 		name: 'save',
-		outputs: [],
+		outputs: [
+			{
+				internalType: 'uint256',
+				name: '',
+				type: 'uint256',
+			},
+		],
 		stateMutability: 'nonpayable',
 		type: 'function',
 	},
@@ -380,7 +386,13 @@ export const ISavingsTokenABI = [
 			},
 		],
 		name: 'saveTo',
-		outputs: [],
+		outputs: [
+			{
+				internalType: 'uint256',
+				name: '',
+				type: 'uint256',
+			},
+		],
 		stateMutability: 'nonpayable',
 		type: 'function',
 	},
@@ -557,12 +569,18 @@ export const ISavingsTokenABI = [
 		inputs: [
 			{
 				internalType: 'uint256',
-				name: 'amount',
+				name: 'shares',
 				type: 'uint256',
 			},
 		],
 		name: 'withdraw',
-		outputs: [],
+		outputs: [
+			{
+				internalType: 'uint256',
+				name: '',
+				type: 'uint256',
+			},
+		],
 		stateMutability: 'nonpayable',
 		type: 'function',
 	},
@@ -575,12 +593,18 @@ export const ISavingsTokenABI = [
 			},
 			{
 				internalType: 'uint256',
-				name: 'amount',
+				name: 'shares',
 				type: 'uint256',
 			},
 		],
 		name: 'withdrawTo',
-		outputs: [],
+		outputs: [
+			{
+				internalType: 'uint256',
+				name: '',
+				type: 'uint256',
+			},
+		],
 		stateMutability: 'nonpayable',
 		type: 'function',
 	},
