@@ -180,7 +180,7 @@ contract SavingsTokenMorpho is Ownable, IMorphoFlashLoanCallback {
 		morpho.flashLoan(address(collateral), assets, data);
 	}
 
-	function close(address[] memory tokens, uint24[] memory fees, uint256 amountOutMinimum) external onlyOwner {
+	function close() external onlyOwner {
 		// calc
 		Id marketId = Id.wrap(getMarketId(market));
 		Position memory p = morpho.position(marketId, address(this));
