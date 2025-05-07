@@ -11,7 +11,6 @@ import {ISavingsToken} from './interfaces/ISavingsToken.sol';
 import {IMorpho, MarketParams, Id, Position, Market} from './morpho/IMorpho.sol';
 import {IMorphoFlashLoanCallback} from './morpho/IMorphoCallbacks.sol';
 import {SharesMathLib} from './morpho/SharesMathLib.sol';
-import {IOracle} from './morpho/IOracle.sol';
 
 contract SavingsTokenMorpho is Ownable, IMorphoFlashLoanCallback {
 	using Math for uint256;
@@ -80,7 +79,7 @@ contract SavingsTokenMorpho is Ownable, IMorphoFlashLoanCallback {
 	// ---------------------------------------------------------------------------------------
 
 	function getPrice() public view returns (uint256) {
-		return IOracle(market.oracle).price();
+		return savingsToken.convertToAsset();
 	}
 
 	// ---------------------------------------------------------------------------------------

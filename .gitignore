@@ -6,6 +6,7 @@
 .states
 /cache
 /artifacts
+/contracts/artifacts/*
 /contracts/**/artifacts
 /ignition/**/artifacts
 /ignition/**/build-info

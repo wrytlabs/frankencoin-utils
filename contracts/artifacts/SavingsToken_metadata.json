@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.26+commit.8a97fa7a"
+		"version": "0.8.20+commit.a1b79de6"
 	},
 	"language": "Solidity",
 	"output": {
@@ -171,7 +171,7 @@
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "amountOut",
+						"name": "sharesMinted",
 						"type": "uint256"
 					},
 					{
@@ -221,7 +221,7 @@
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "amountIn",
+						"name": "sharesBurned",
 						"type": "uint256"
 					},
 					{
@@ -309,6 +309,19 @@
 			},
 			{
 				"inputs": [],
+				"name": "convertToAsset",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "decimals",
 				"outputs": [
 					{
@@ -347,32 +360,6 @@
 				"type": "function"
 			},
 			{
-				"inputs": [],
-				"name": "price",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "priceAdjusted",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
 				"inputs": [
 					{
 						"internalType": "uint256",
@@ -381,7 +368,13 @@
 					}
 				],
 				"name": "save",
-				"outputs": [],
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
@@ -399,7 +392,13 @@
 					}
 				],
 				"name": "saveTo",
-				"outputs": [],
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
@@ -576,12 +575,18 @@
 				"inputs": [
 					{
 						"internalType": "uint256",
-						"name": "amount",
+						"name": "shares",
 						"type": "uint256"
 					}
 				],
 				"name": "withdraw",
-				"outputs": [],
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
@@ -594,12 +599,18 @@
 					},
 					{
 						"internalType": "uint256",
-						"name": "amount",
+						"name": "shares",
 						"type": "uint256"
 					}
 				],
 				"name": "withdrawTo",
-				"outputs": [],
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
@@ -727,7 +738,7 @@
 		"compilationTarget": {
 			"contracts/SavingsToken.sol": "SavingsToken"
 		},
-		"evmVersion": "cancun",
+		"evmVersion": "shanghai",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -860,11 +871,11 @@
 			]
 		},
 		"contracts/SavingsToken.sol": {
-			"keccak256": "0x90568f8262f8838002dcdb121399d0744fbb60f275bad3e5d1769914a0039c4a",
+			"keccak256": "0x0e9d2b6fd1b14c61a73fffb02d25d1abf57a21b85a24b5fa0e984603004e6d62",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://6ceb7895230d06287f638d78ed3e6ba20b12e384ed240c0f48e43dbf5f402c9a",
-				"dweb:/ipfs/QmVBTTkinF7h3bmC7qf3o2Zh16k4qJ6QNz7Nn1KvwQiXrT"
+				"bzz-raw://9f1f3940755d2c1234b5509ad6692aeffc341b0fc3bd39425c0859b8a1be6c5a",
+				"dweb:/ipfs/QmS7qUPct8wxyhejXb5KRXhrgaNpiCExTXyfnXDnabZrgj"
 			]
 		},
 		"contracts/frankencoin/ISavings.sol": {
