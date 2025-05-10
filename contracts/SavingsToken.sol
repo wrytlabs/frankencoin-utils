@@ -44,6 +44,11 @@ contract SavingsToken is ERC20 {
 		return saveTo(msg.sender, amount);
 	}
 
+	// match savings module signature
+	function save(address owner, uint192 amount) public {
+		saveTo(owner, uint256(amount));
+	}
+
 	function saveTo(address account, uint256 amount) public returns (uint256) {
 		_update();
 
@@ -62,6 +67,11 @@ contract SavingsToken is ERC20 {
 
 	function withdraw(uint256 shares) public returns (uint256) {
 		return withdrawTo(msg.sender, shares);
+	}
+
+	// match savings module signature
+	function withdraw(address target, uint192 amount) public returns (uint256) {
+		return withdrawTo(target, uint256(amount));
 	}
 
 	function withdrawTo(address target, uint256 shares) public returns (uint256) {
