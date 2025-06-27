@@ -15,10 +15,12 @@ import {IFrankencoin} from './frankencoin/IFrankencoin.sol';
 import {IMintingHubV2Bidder} from './frankencoin/IMintingHubV2Bidder.sol';
 import {IPositionV2} from './frankencoin/IPositionV2.sol';
 
-/// @title BidderMorphoV2 - Ownable
-/// @author @samclassix <samclassix@proton.me> @wrytlabs <wrytlabs@proton.me>
-/// @notice Bidder contract for MintingHub V2 that uses Morpho flashloan to borrow assets,
-/// performs arbitrage or liquidation via Uniswap, and captures profit from the spread.
+/// @title BidderMorphoV2Ownable
+/// @author @samclassix <samclassix@proton.me>, @wrytlabs <wrytlabs@proton.me>
+/// @notice Executes bids on MintingHub V2 using Morpho flash loans and Uniswap V3 swaps.
+/// @dev This contract leverages Morpho flash loans to acquire assets for bidding,
+/// performs swaps via Uniswap V3 to repay the loan, and captures profit from the price spread.
+/// Ownership is used for administrative control.
 contract BidderMorphoV2Ownable is Ownable, IMorphoFlashLoanCallback {
 	using Math for uint256;
 	using SafeERC20 for IERC20;
@@ -55,6 +57,11 @@ contract BidderMorphoV2Ownable is Ownable, IMorphoFlashLoanCallback {
 
 	// ---------------------------------------------------------------------------------------
 
+	/// @notice Encodes a Uniswap V3 multihop path from token and fee arrays.
+	/// @dev Produces a bytes-encoded swap path compatible with Uniswap V3 routers and pools.
+	/// @param tokens An array of token addresses representing the swap route (must be length = fees.length + 1).
+	/// @param fees An array of pool fees (in hundredths of a bip, e.g., 500 = 0.05%) between each token pair.
+	/// @return path The ABI-encoded swap path (token0 + fee0 + token1 + fee1 + ... + tokenN).
 	function encodePath(address[] memory tokens, uint24[] memory fees) public pure returns (bytes memory) {
 		if (tokens.length < 2 || tokens.length - 1 != fees.length) revert WrongEncodePathInputs();
 
@@ -67,20 +74,36 @@ contract BidderMorphoV2Ownable is Ownable, IMorphoFlashLoanCallback {
 	}
 
 	// ---------------------------------------------------------------------------------------
-	// @dev: Path encoding should be performed off-chain.
-	// The smart contract doesn't perform path validation checks,
-	// as invalid paths will cause the transaction to revert anyway.
 
+	/// @notice Executes a challenge using raw token/fee arrays by encoding the path internally.
+	/// @dev Encodes the swap path from `tokens` and `fees`, then calls the internal `_execute`.
+	/// @param index The challenge index to execute.
+	/// @param amount The collateral amount to take (0 for max).
+	/// @param tokens An array of token addresses for the swap path.
+	/// @param fees An array of Uniswap pool fees between each hop.
 	function executeRaw(uint32 index, uint256 amount, address[] memory tokens, uint24[] memory fees) external {
 		_path = encodePath(tokens, fees);
 		_execute(index, amount);
 	}
 
+	/// @notice Executes a challenge using a pre-encoded swap path.
+	/// @dev Assumes the caller provides a correctly encoded Uniswap V3 path.
+	/// @param index The challenge index to execute.
+	/// @param amount The collateral amount to take (0 for max).
+	/// @param path A bytes-encoded Uniswap V3 swap path.
 	function execute(uint32 index, uint256 amount, bytes memory path) external {
 		_path = path;
 		_execute(index, amount);
 	}
 
+	// ---------------------------------------------------------------------------------------
+
+	/// @notice Executes a challenge by initiating a flash loan and preparing internal state.
+	/// @dev Retrieves challenge and auction data from the hub, calculates required flash loan size,
+	/// and stores necessary parameters in contract storage for use during the flash loan callback.
+	/// The flash loan is executed through Morpho and must be repaid within the callback.
+	/// @param index The index of the challenge to execute.
+	/// @param amount The collateral amount to claim; if 0 or greater than the total, full size is used.
 	function _execute(uint32 index, uint256 amount) internal {
 		// get challenge data
 		(, , IPositionV2 position, uint256 size) = hub.challenges(index);
@@ -116,6 +139,11 @@ contract BidderMorphoV2Ownable is Ownable, IMorphoFlashLoanCallback {
 
 	// ---------------------------------------------------------------------------------------
 
+	/// @notice Callback function executed after receiving a flash loan from Morpho.
+	/// @dev This function is called by Morpho upon flash loan execution.
+	/// The logic inside should use the borrowed `assets` and ensure repayment within the same transaction.
+	/// @param assets The amount of tokens received in the flash loan.
+	/// param data Ignored calldata (unused); parameters are handled via internal state.
 	function onMorphoFlashLoan(uint256 assets, bytes calldata /* data */) external {
 		if (msg.sender != address(morpho)) revert NotMorpho();
 
@@ -135,7 +163,7 @@ contract BidderMorphoV2Ownable is Ownable, IMorphoFlashLoanCallback {
 		IERC20(_collateral).forceApprove(address(uniswap), _size);
 		uint256 amountOut = uniswap.exactInput(params);
 
-		// transfer profit
+		// transfer profit to owner
 		zchf.transfer(owner(), amountOut - assets);
 
 		// forceApprove for flashloan repayment
