@@ -15,6 +15,10 @@ import {IFrankencoin} from './frankencoin/IFrankencoin.sol';
 import {IMintingHubV2Bidder} from './frankencoin/IMintingHubV2Bidder.sol';
 import {IPositionV2} from './frankencoin/IPositionV2.sol';
 
+/// @title BidderMorphoV2 - Ownable
+/// @author @samclassix <samclassix@proton.me> @wrytlabs <wrytlabs@proton.me>
+/// @notice Bidder contract for MintingHub V2 that uses Morpho flashloan to borrow assets,
+/// performs arbitrage or liquidation via Uniswap, and captures profit from the spread.
 contract BidderMorphoV2Ownable is Ownable, IMorphoFlashLoanCallback {
 	using Math for uint256;
 	using SafeERC20 for IERC20;
@@ -23,10 +27,16 @@ contract BidderMorphoV2Ownable is Ownable, IMorphoFlashLoanCallback {
 	IMorpho private immutable morpho;
 	ISwapRouter private immutable uniswap;
 	IERC20 private immutable zchf;
-	IMintingHubV2Bidder public immutable hub;
+	IMintingHubV2Bidder private immutable hub;
+
+	// private
+	uint32 private _index;
+	address private _collateral;
+	uint256 private _size;
+	bytes private _path;
 
 	// events
-	event Executed(uint256 bid, uint256 swapIn, uint256 swapOut);
+	event Executed(address indexed collateral, uint256 flashBid, uint256 swapIn, uint256 swapOut);
 
 	// errors
 	error NotMorpho();
@@ -61,7 +71,17 @@ contract BidderMorphoV2Ownable is Ownable, IMorphoFlashLoanCallback {
 	// The smart contract doesn't perform path validation checks,
 	// as invalid paths will cause the transaction to revert anyway.
 
-	function execute(uint32 index, uint256 amount, bytes calldata path) external onlyOwner {
+	function executeRaw(uint32 index, uint256 amount, address[] memory tokens, uint24[] memory fees) external {
+		_path = encodePath(tokens, fees);
+		_execute(index, amount);
+	}
+
+	function execute(uint32 index, uint256 amount, bytes memory path) external {
+		_path = path;
+		_execute(index, amount);
+	}
+
+	function _execute(uint32 index, uint256 amount) internal {
 		// get challenge data
 		(, , IPositionV2 position, uint256 size) = hub.challenges(index);
 		if (size == 0) revert NoCollateral();
@@ -76,36 +96,43 @@ contract BidderMorphoV2Ownable is Ownable, IMorphoFlashLoanCallback {
 		// calc flash amount
 		uint256 assets = (size * price) / 1 ether;
 
-		// execute zchf flash
-		bytes memory data = abi.encode(index, address(position.collateral()), size, path);
-		morpho.flashLoan(address(zchf), assets, data);
+		// store data
+		_index = index;
+		_collateral = address(position.collateral());
+		_size = size;
+
+		// flashLoan callback uses internal state; no data encoding needed
+		bytes memory emptyData = new bytes(0);
+
+		// execute zchf flash loan action
+		morpho.flashLoan(address(zchf), assets, emptyData);
+
+		// clear data
+		delete _index;
+		delete _collateral;
+		delete _size;
+		delete _path;
 	}
 
 	// ---------------------------------------------------------------------------------------
 
-	function onMorphoFlashLoan(uint256 assets, bytes calldata data) external {
+	function onMorphoFlashLoan(uint256 assets, bytes calldata /* data */) external {
 		if (msg.sender != address(morpho)) revert NotMorpho();
 
-		// decode
-		(uint32 index, address collateral, uint256 size, bytes memory path) = abi.decode(
-			data,
-			(uint32, address, uint256, bytes)
-		);
-
 		// take bid (loan --> collateral)
-		hub.bid(index, size, false);
+		hub.bid(_index, _size, false);
 
 		// swap flashloan collateral --> loan
 		ISwapRouter.ExactInputParams memory params = ISwapRouter.ExactInputParams({
-			path: path,
+			path: _path,
 			recipient: address(this),
 			deadline: block.timestamp + 600,
-			amountIn: size,
+			amountIn: _size,
 			amountOutMinimum: assets // min. flashloan repayment
 		});
 
 		// forceApprove and execute swap
-		IERC20(collateral).forceApprove(address(uniswap), size);
+		IERC20(_collateral).forceApprove(address(uniswap), _size);
 		uint256 amountOut = uniswap.exactInput(params);
 
 		// transfer profit
@@ -114,6 +141,7 @@ contract BidderMorphoV2Ownable is Ownable, IMorphoFlashLoanCallback {
 		// forceApprove for flashloan repayment
 		zchf.forceApprove(address(morpho), assets);
 
-		emit Executed(assets, size, amountOut);
+		// emits event
+		emit Executed(_collateral, assets, _size, amountOut);
 	}
 }
