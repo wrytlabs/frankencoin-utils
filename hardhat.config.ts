@@ -51,6 +51,14 @@ const config: HardhatUserConfig = {
 			accounts: [wallet.privateKey],
 			timeout: 50_000,
 		},
+		tenderly: {
+			url: process.env.TENDERLY_RPC_URL,
+			chainId: 42069,
+			gas: 'auto',
+			gasPrice: 'auto',
+			accounts: [wallet.privateKey],
+			timeout: 50_000,
+		},
 		polygon: {
 			url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemy}`,
 			chainId: 137,
